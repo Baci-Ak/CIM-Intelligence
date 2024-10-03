@@ -1,6 +1,9 @@
 "use client"; // Marks this component as client-side
 
 import React, { useState, useEffect, useRef } from "react";
+import Link from "next/link"; // Import the Link component from Next.js
+import { onAuthStateChanged, signOut } from "firebase/auth"; // Import auth-related functions
+import { auth } from "../../lib/firebase"; // Import the firebase instance
 
 const Header = () => {
   // State to track if the mobile menu is open or closed
@@ -14,6 +17,9 @@ const Header = () => {
 
   // State to handle dark mode
   const [isDarkMode, setIsDarkMode] = useState(true); // Default dark mode enabled
+
+  // State to handle user authentication
+  const [user, setUser] = useState(null);
 
   // Refs for handling clicks outside of dropdowns
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -57,12 +63,32 @@ const Header = () => {
     };
   }, []);
 
+  // Firebase authentication state observer
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+    });
+
+    return () => unsubscribe(); // Clean up the listener when the component unmounts
+  }, []);
+
+  // Function to handle logout
+  const handleSignOut = () => {
+    signOut(auth).then(() => {
+      setUser(null);
+    }).catch((error) => {
+      console.error("Error signing out:", error);
+    });
+  };
+
   return (
     <header className="bg-white dark:bg-gray-900 text-black dark:text-white shadow-md py-4 relative z-50">
       <div className="container mx-auto flex justify-between items-center px-4 md:px-0">
-        {/* Logo Section */}
+        {/* Updated: Logo Section */}
         <div className="w-24">
-          <img src="/logo.png" alt="CIM Intelligence Logo" className="w-full h-auto" />
+          <Link href="/" passHref>
+            <img src="/logo.png" alt="CIM Intelligence Logo" className="w-full h-auto cursor-pointer" />
+          </Link>
         </div>
 
         {/* Mobile View: Hamburger menu, Search, Dark Mode, Log In */}
@@ -96,8 +122,16 @@ const Header = () => {
             </svg>
           </button>
 
-          {/* Log In Button */}
-          <button className="bg-gray-500 text-white px-2 py-1 rounded-md text-xs font-medium">Log In</button>
+          {/* Log In/Log Out Button */}
+          {user ? (
+            <button className="bg-red-500 text-white px-2 py-1 rounded-md text-xs font-medium" onClick={handleSignOut}>
+              Log Out
+            </button>
+          ) : (
+            <Link href="/auth/login">
+              <button className="bg-gray-500 text-white px-2 py-1 rounded-md text-xs font-medium">Log In</button>
+            </Link>
+          )}
         </div>
 
         {/* Desktop View: Main Navigation */}
@@ -170,8 +204,15 @@ const Header = () => {
             </svg>
           </button>
 
-          <button className="bg-green-500 text-white px-4 py-2 rounded-md">Sign Up</button>
-          <button className="bg-gray-500 text-white px-4 py-2 rounded-md">Log In</button>
+          {user ? (
+            <button className="bg-red-500 text-white px-4 py-2 rounded-md" onClick={handleSignOut}>
+              Log Out
+            </button>
+          ) : (
+            <Link href="/auth/login">
+              <button className="bg-gray-500 text-white px-4 py-2 rounded-md">Log In</button>
+            </Link>
+          )}
         </div>
       </div>
 
@@ -293,7 +334,7 @@ const Header = () => {
             {/* Instagram Icon */}
             <a href="https://instagram.com" target="_blank" rel="noopener noreferrer">
               <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 2.163c3.204 0 3.584.012 4.85.07 1.17.054 1.97.24 2.428.41.603.232 1.036.513 1.49.968.453.454.736.888.967 1.49.17.458.356 1.258.411 2.429.058 1.265.069 1.645.069 4.849s-.012 3.584-.07 4.849c-.054 1.17-.24 1.97-.41 2.428a4.618 4.618 0 01-.967 1.49c-.454.453-.888.736-1.49.967-.458.17-1.258.356-2.429.411-1.265.058-1.645.069-4.849.069s-3.584-.012-4.849-.07c-1.17-.054-1.97-.24-2.428-.41a4.618 4.618 0 01-1.49-.967 4.618 4.618 0 01-.967-1.49c-.17-.458-.356-1.258-.411-2.429-.058-1.265-.069-1.645-.069-4.849s.012-3.584.07-4.849c.054-1.17.24-1.97.41-2.428a4.618 4.618 0 01.967-1.49 4.618 4.618 0 011.49-.967c.458-.17 1.258-.356 2.429-.411 1.265-.058 1.645-.069 4.849-.069zm0-2.163c-3.27 0-3.67.013-4.947.071-1.276.058-2.15.25-2.905.534a6.994 6.994 0 00-2.528 1.649 6.994 6.994 0 00-1.649 2.528c-.285.756-.477 1.63-.534 2.905-.058 1.276-.071 1.676-.071 4.947s.013 3.671.071 4.947c.058 1.276.25 2.15.534 2.905a6.994 6.994 0 001.649 2.528 6.994 6.994 0 002.528 1.649c.756.285 1.63.477 2.905.534 1.276.058 1.676.071 4.947.071s3.671-.013 4.947-.071c1.276-.058 2.15-.25 2.905-.534a6.994 6.994 0 002.528-1.649 6.994 6.994 0 001.649-2.528c.285-.756.477-1.63.534-2.905.058-1.276.071-1.676.071-4.947s-.013-3.671-.071-4.947c-.058-1.276-.25-2.15-.534-2.905a6.994 6.994 0 00-1.649-2.528 6.994 6.994 0 00-2.528-1.649c-.756-.285-1.63-.477-2.905-.534-1.276-.058-1.676-.071-4.947-.071zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zm0 10.162a3.999 3.999 0 110-7.999 3.999 3.999 0 010 7.999zm6.406-10.943a1.44 1.44 0 100-2.88 1.44 1.44 0 000 2.88z" />
+                <path d="M12 2.163c3.204 0 3.584.012 4.85.07 1.17.054 1.97.24 2.428.41.603.232 1.036.513 1.49.968.453.454.736.888.967 1.49.17.458.356 1.258.411 2.429.058 1.265.069 1.645.069 4.849s-.012 3.584-.07 4.849c-.054 1.17-.24 1.97-.41 2.428a4.618 4.618 0 01-.967 1.49c-.454.453-.888.736-1.49.967-.458.17-1.258.356-2.429.411-1.265.058-1.645.069-4.849.069s-3.584-.012-4.849-.07c-1.17-.054-1.97-.24-2.428-.41a4.618 4.618 0 01-1.49-.967 4.618 4.618 0 01-.967-1.49c-.17-.458-.356-1.258-.411-2.429-.058-1.265-.069-1.645-.069-4.849s.012-3.584.07-4.849c.054-1.17.24-1.97.41-2.428a4.618 4.618 0 011.49-.967c.458-.17 1.258-.356 2.429-.411 1.265-.058 1.645-.069 4.849-.069zm0-2.163c-3.27 0-3.67.013-4.947.071-1.276.058-2.15.25-2.905.534a6.994 6.994 0 00-2.528 1.649 6.994 6.994 0 00-1.649 2.528c-.285.756-.477 1.63-.534 2.905-.058 1.276-.071 1.676-.071 4.947s.013 3.671.071 4.947c.058 1.276.25 2.15.534 2.905a6.994 6.994 0 001.649 2.528 6.994 6.994 0 002.528 1.649c.756.285 1.63.477 2.905.534 1.276.058 1.676.071 4.947.071s3.671-.013 4.947-.071c1.276-.058 2.15-.25 2.905-.534a6.994 6.994 0 002.528-1.649 6.994 6.994 0 001.649-2.528c.285-.756.477-1.63.534-2.905.058-1.276.071-1.676.071-4.947s-.013-3.671-.071-4.947c-.058-1.276-.25-2.15-.534-2.905a6.994 6.994 0 00-1.649-2.528 6.994 6.994 0 00-2.528-1.649c-.756-.285-1.63-.477-2.905-.534-1.276-.058-1.676-.071-4.947-.071zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zm0 10.162a3.999 3.999 0 110-7.999 3.999 3.999 0 010 7.999zm6.406-10.943a1.44 1.44 0 100-2.88 1.44 1.44 0 000 2.88z" />
               </svg>
             </a>
           </div>

@@ -1,5 +1,6 @@
 import './globals.css';
 import Header from './components/Header';
+import Footer from './components/Footer'; // Import the Footer
 
 export const metadata = {
   title: 'CIM Intelligence',
@@ -14,8 +15,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <Header />
-        {children}
+        <Header />   {/* Renders the global header */}
+        <main>{children}</main>   {/* This is where the content of each page will be rendered */}
+        <Footer />   {/* Footer is placed at the bottom of every page */}
       </body>
     </html>
   );
