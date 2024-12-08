@@ -118,7 +118,7 @@ The platform serves as a hub for tutorials, interactive exercises, personalized 
 ## **Installation and Setup**
 1. **Clone the Repository**:
    ```bash
-   git clone https://github.com/yourusername/cim-intelligence.git
+   git clone https://github.com/Baci-Ak/CIM-Intelligence.git
    cd cim-intelligence
    ```
 
